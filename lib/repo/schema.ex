@@ -8,31 +8,35 @@ defmodule ExAudit.Schema do
   def insert_all(module, adapter, schema_or_source, entries, opts) do
     opts = augment_opts(opts)
 
-    result =
-      Ecto.Repo.Schema.insert_all(
-        module,
-        adapter,
-        schema_or_source,
-        entries,
-        Keyword.put(opts, :returning, true)
-      )
+    augment_transaction(module, fn ->
+      result =
+        Ecto.Repo.Schema.insert_all(
+          module,
+          adapter,
+          schema_or_source,
+          entries,
+          Keyword.put(opts, :returning, true)
+        )
 
-    case result do
-      {rows, changesets} when is_list(changesets) and rows > 0 ->
-        Enum.each(changesets, fn changeset ->
-          ExAudit.Tracking.track_change(
-            module,
-            adapter,
-            :created,
-            schema_or_source,
-            changeset,
-            opts
-          )
-        end)
+      case result do
+        {rows, changesets} when is_list(changesets) and rows > 0 ->
+          Enum.each(changesets, fn changeset ->
+            ExAudit.Tracking.track_change(
+              module,
+              adapter,
+              :created,
+              schema_or_source,
+              changeset,
+              opts
+            )
+          end)
 
-      _ ->
-        result
-    end
+        _ ->
+          :ok
+      end
+
+      result
+    end)
   end
 
   def insert(module, adapter, struct, opts) do
@@ -146,7 +150,7 @@ defmodule ExAudit.Schema do
   end
 
   # Cleans up the return value from repo.transaction
-  defp augment_transaction(repo, fun, bang \\ false) do
+  def augment_transaction(repo, fun, bang \\ false) do
     multi =
       Ecto.Multi.new()
       |> Ecto.Multi.run(:main, __MODULE__, :run_in_multi, [fun, bang])
@@ -161,9 +165,22 @@ defmodule ExAudit.Schema do
 
   def run_in_multi(multi, fun, bang) do
     case {fun.(), bang} do
-      {{:ok, _} = ok, false} -> ok
-      {{:error, _} = error, false} -> error
-      {value, true} -> {:ok, value}
+      {{:ok, _} = ok, false} ->
+        ok
+
+      {{:error, _} = error, false} ->
+        error
+
+      {value, true} ->
+        {:ok, value}
+
+      # insert_all
+      {{_, array} = value, false} when is_list(array) ->
+        {:ok, value}
+
+      # delete_all
+      {value, false} when is_tuple(value) ->
+        {:ok, value}
     end
   end
 
@@ -172,7 +189,7 @@ defmodule ExAudit.Schema do
   #
   # This is done so it works inside a transaction (which happens when ecto mutates assocs at the same time)
 
-  defp augment_opts(opts) do
+  def augment_opts(opts) do
     opts
     |> Keyword.put_new(:ex_audit_custom, [])
     |> Keyword.update(:ex_audit_custom, [], fn custom_fields ->

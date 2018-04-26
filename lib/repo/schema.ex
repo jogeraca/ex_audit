@@ -146,7 +146,7 @@ defmodule ExAudit.Schema do
   end
 
   # Cleans up the return value from repo.transaction
-  defp augment_transaction(repo, fun, bang \\ false) do
+  def augment_transaction(repo, fun, bang \\ false) do
     multi =
       Ecto.Multi.new()
       |> Ecto.Multi.run(:main, __MODULE__, :run_in_multi, [fun, bang])
@@ -172,7 +172,7 @@ defmodule ExAudit.Schema do
   #
   # This is done so it works inside a transaction (which happens when ecto mutates assocs at the same time)
 
-  defp augment_opts(opts) do
+  def augment_opts(opts) do
     opts
     |> Keyword.put_new(:ex_audit_custom, [])
     |> Keyword.update(:ex_audit_custom, [], fn custom_fields ->

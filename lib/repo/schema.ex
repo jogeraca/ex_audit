@@ -14,7 +14,7 @@ defmodule ExAudit.Schema do
         adapter,
         schema_or_source,
         entries,
-        Keyword.put(opts, returning: true)
+        Keyword.put(opts, :returning, true)
       )
 
     case result do
@@ -30,7 +30,7 @@ defmodule ExAudit.Schema do
           )
         end)
 
-      {_, nil} ->
+      _ ->
         result
     end
   end

@@ -8,31 +8,35 @@ defmodule ExAudit.Schema do
   def insert_all(module, adapter, schema_or_source, entries, opts) do
     opts = augment_opts(opts)
 
-    result =
-      Ecto.Repo.Schema.insert_all(
-        module,
-        adapter,
-        schema_or_source,
-        entries,
-        Keyword.put(opts, :returning, true)
-      )
+    augment_transaction(module, fn ->
+      result =
+        Ecto.Repo.Schema.insert_all(
+          module,
+          adapter,
+          schema_or_source,
+          entries,
+          Keyword.put(opts, :returning, true)
+        )
 
-    case result do
-      {rows, changesets} when is_list(changesets) and rows > 0 ->
-        Enum.each(changesets, fn changeset ->
-          ExAudit.Tracking.track_change(
-            module,
-            adapter,
-            :created,
-            schema_or_source,
-            changeset,
-            opts
-          )
-        end)
+      case result do
+        {rows, changesets} when is_list(changesets) and rows > 0 ->
+          Enum.each(changesets, fn changeset ->
+            ExAudit.Tracking.track_change(
+              module,
+              adapter,
+              :created,
+              schema_or_source,
+              changeset,
+              opts
+            )
+          end)
 
-      _ ->
-        result
-    end
+        _ ->
+          :ok
+      end
+
+      result
+    end)
   end
 
   def insert(module, adapter, struct, opts) do
@@ -161,9 +165,23 @@ defmodule ExAudit.Schema do
 
   def run_in_multi(multi, fun, bang) do
     case {fun.(), bang} do
-      {{:ok, _} = ok, false} -> ok
-      {{:error, _} = error, false} -> error
-      {value, true} -> {:ok, value}
+      {{:ok, _} = ok, false} ->
+        ok
+
+      {{:error, _} = error, false} ->
+        error
+
+      {value, true} ->
+        {:ok, value}
+
+      {{_, array} = value, false} when is_list(array) ->
+        {:ok, value}
+
+      {{_, array} = value, false} when is_list(array) ->
+        {:ok, value}
+
+      {value, false} when is_tuple(value) ->
+        {:ok, value}
     end
   end
 

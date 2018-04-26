@@ -8,21 +8,25 @@ defmodule ExAudit.Queryable do
   end
 
   def delete_all(module, adapter, queryable, opts) do
-    result_query = Ecto.Repo.Queryable.all(module, adapter, queryable, opts)
+    opts = ExAudit.Schema.augment_opts(opts)
 
-    Enum.map(result_query, fn changeset ->
-      data =
-        ExAudit.Tracking.track_change(
-          module,
-          adapter,
-          :deleted,
-          changeset,
-          changeset,
-          opts
-        )
+    ExAudit.Schema.augment_transaction(module, fn ->
+      result_query = Ecto.Repo.Queryable.all(module, adapter, queryable, opts)
+
+      Enum.map(result_query, fn changeset ->
+        data =
+          ExAudit.Tracking.track_change(
+            module,
+            adapter,
+            :deleted,
+            changeset,
+            changeset,
+            opts
+          )
+      end)
+
+      Ecto.Repo.Queryable.delete_all(module, adapter, queryable, opts)
     end)
-
-    Ecto.Repo.Queryable.delete_all(module, adapter, queryable, opts)
   end
 
   def history(module, adapter, struct, opts) do

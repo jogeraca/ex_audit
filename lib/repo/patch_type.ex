@@ -21,7 +21,7 @@ defmodule ExAudit.Type.Patch do
     {:ok, elm}
   end
 
-  def type, do: :binary
+  def type, do: :map
 
   defp convert_map_to_json(patch) do
     patch

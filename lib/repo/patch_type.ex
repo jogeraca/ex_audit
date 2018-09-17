@@ -7,7 +7,6 @@ defmodule ExAudit.Type.Patch do
     elm =
       map
       |> convert_map_to_json()
-      |> Poison.encode!()
 
     {:ok, elm}
   end
@@ -15,7 +14,6 @@ defmodule ExAudit.Type.Patch do
   def load(json) do
     elm =
       json
-      |> Poison.decode!()
       |> convert_json_to_map()
 
     {:ok, elm}

@@ -18,10 +18,15 @@ defmodule RevertTest do
 
     Repo.update(ch)
 
-    version = Repo.one(from v in Version, 
-      where: v.entity_id == ^user2.id,
-      where: v.entity_schema == ^User,
-      where: v.action == ^:updated)
+    version =
+      Repo.one(
+        from(
+          v in Version,
+          where: v.entity_id == ^user2.id,
+          where: v.entity_schema == ^User,
+          where: v.action == ^:updated
+        )
+      )
 
     # revert an update
 
@@ -29,29 +34,16 @@ defmodule RevertTest do
 
     assert user2_rolled_back.name == "Horst Dieter Schaf"
 
-    version_rollback = Repo.one(from v in Version, 
-      where: v.entity_id == ^user2.id,
-      where: v.entity_schema == ^User,
-      where: v.action == ^:updated,
-      where: v.rollback == true)
-
-    assert version_rollback != nil
-
-    # revert multiple things, including update and delete
-
-    Repo.delete(user2)
-
-    {:ok, user2_rolled_back} = Repo.revert(version)
-
-    assert user2_rolled_back.name == "Horst Dieter Schaf"
-
-    version_rollback = Repo.one(from v in Version, 
-      where: v.entity_id == ^user2.id,
-      where: v.entity_schema == ^User,
-      where: v.action == ^:updated,
-      where: v.rollback == true,
-      limit: 1,
-      order_by: [desc: v.recorded_at])
+    version_rollback =
+      Repo.one(
+        from(
+          v in Version,
+          where: v.entity_id == ^user2.id,
+          where: v.entity_schema == ^User,
+          where: v.action == ^:updated,
+          where: v.rollback == true
+        )
+      )
 
     assert version_rollback != nil
   end

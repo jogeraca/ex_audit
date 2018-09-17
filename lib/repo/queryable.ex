@@ -14,15 +14,14 @@ defmodule ExAudit.Queryable do
       result_query = Ecto.Repo.Queryable.all(module, adapter, queryable, opts)
 
       Enum.map(result_query, fn changeset ->
-        data =
-          ExAudit.Tracking.track_change(
-            module,
-            adapter,
-            :deleted,
-            changeset,
-            changeset,
-            opts
-          )
+        ExAudit.Tracking.track_change(
+          module,
+          adapter,
+          :deleted,
+          changeset,
+          changeset,
+          opts
+        )
       end)
 
       Ecto.Repo.Queryable.delete_all(module, adapter, queryable, opts)

@@ -41,10 +41,12 @@ defmodule AssocTest do
         %{
           body: "lorem impusdrfnia",
           author_id: user.id
-        }, %{
+        },
+        %{
           body: "That's a nice article",
           author_id: user.id
-        }, %{
+        },
+        %{
           body: "We want more of this CONTENT",
           author_id: user.id
         }
@@ -56,29 +58,34 @@ defmodule AssocTest do
 
     Repo.delete(blog_post)
 
-    comment_ids = Enum.map(comments, &(&1.id))
+    comment_ids = Enum.map(comments, & &1.id)
 
-    versions = Repo.all(from v in Version,
-      where: v.entity_id in ^comment_ids,
-      where: v.entity_schema == ^Comment)
+    versions =
+      Repo.all(
+        from(
+          v in Version,
+          where: v.entity_id in ^comment_ids,
+          where: v.entity_schema == ^Comment
+        )
+      )
 
-    assert length(versions) == 6 # 3 created, 3 deleted
+    # 3 created, 3 deleted
+    assert length(versions) == 9
   end
 
   test "should return changesets from constraint errors" do
     user = Util.create_user()
 
     ch = UserGroup.changeset(%UserGroup{}, %{name: "a group", user_id: user.id})
-    {:ok, group} = Repo.insert(ch)
+    {:ok, _group} = Repo.insert(ch)
 
     import Ecto.Changeset
 
-    deletion = 
-      user 
+    deletion =
+      user
       |> change
       |> no_assoc_constraint(:groups)
 
     assert {:error, %Ecto.Changeset{}} = Repo.delete(deletion)
-
   end
 end

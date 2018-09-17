@@ -7,9 +7,9 @@ defmodule ExAudit.Mixfile do
       app: :ex_audit,
       version: "0.4.0",
       elixir: "~> 1.5",
-      start_permanent: Mix.env == :prod,
+      start_permanent: Mix.env() == :prod,
       deps: deps(),
-      elixirc_paths: paths(Mix.env),
+      elixirc_paths: paths(Mix.env()),
       test_coverage: [tool: ExCoveralls],
       preferred_cli_env: [coveralls: :test],
       source_url: "https://github.com/zenneriot/ex_audit",
@@ -17,7 +17,7 @@ defmodule ExAudit.Mixfile do
         licenses: ["MIT"],
         maintainers: ["Moritz Schmale <ms@zenner-iot.com>"],
         links: %{
-          "GitHub" => "https://github.com/zenneriot/ex_audit", 
+          "GitHub" => "https://github.com/zenneriot/ex_audit",
           "Documentation" => "https://hexdocs.pm/ex_audit"
         }
       ],
@@ -38,7 +38,6 @@ defmodule ExAudit.Mixfile do
 
   def paths(_), do: paths(:default)
 
-
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
@@ -53,7 +52,8 @@ defmodule ExAudit.Mixfile do
       {:ecto, "~> 2.1"},
       {:postgrex, "~> 0.13.3", only: :test},
       {:excoveralls, "~> 0.7", only: :test},
-      {:ex_doc, "~> 0.16", runtime: false, only: :dev} 
+      {:ex_doc, "~> 0.16", runtime: false, only: :dev},
+      {:poison, "~> 3.0"}
     ]
   end
 end

@@ -16,7 +16,7 @@ defmodule ExAudit.Type.Patch do
     elm =
       json
       |> Poison.decode!()
-      |> list_to_tuple()
+      |> convert_json_to_map()
 
     {:ok, elm}
   end
@@ -54,7 +54,7 @@ defmodule ExAudit.Type.Patch do
     end)
   end
 
-  def list_to_tuple(elem) do
+  def convert_json_to_map(elem) do
     elem
     |> convertion_to_atoms()
     |> Enum.into(%{})
@@ -78,7 +78,7 @@ defmodule ExAudit.Type.Patch do
   def apply_conversion(["removed", elem]), do: {:removed, elem}
 
   def apply_conversion(["changed", changes]) when is_map(changes),
-    do: {:changed, list_to_tuple(changes)}
+    do: {:changed, convert_json_to_map(changes)}
 
   def apply_conversion(["changed", changes]) when is_list(changes),
     do: {:changed, convertion_to_atoms(changes)}

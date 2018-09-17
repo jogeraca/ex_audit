@@ -46,29 +46,6 @@ defmodule RevertTest do
       )
 
     assert version_rollback != nil
-
-    # revert multiple things, including update and delete
-
-    Repo.delete(user2)
-
-    {:ok, user2_rolled_back} = Repo.revert(version)
-
-    assert user2_rolled_back.name == "Horst Dieter Schaf"
-
-    version_rollback =
-      Repo.one(
-        from(
-          v in Version,
-          where: v.entity_id == ^user2.id,
-          where: v.entity_schema == ^User,
-          where: v.action == ^:updated,
-          where: v.rollback == true,
-          limit: 1,
-          order_by: [desc: v.recorded_at]
-        )
-      )
-
-    assert version_rollback != nil
   end
 
   test "undo a create" do

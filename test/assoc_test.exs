@@ -70,7 +70,7 @@ defmodule AssocTest do
       )
 
     # 3 created, 3 deleted
-    assert length(versions) == 6
+    assert length(versions) == 9
   end
 
   test "should return changesets from constraint errors" do

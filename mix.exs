@@ -53,7 +53,8 @@ defmodule ExAudit.Mixfile do
       {:postgrex, "~> 0.13.3", only: :test},
       {:excoveralls, "~> 0.7", only: :test},
       {:ex_doc, "~> 0.16", runtime: false, only: :dev},
-      {:poison, "~> 3.0"}
+      {:poison, "~> 3.0"},
+      {:morphix, "~> 0.3.0" }
     ]
   end
 end

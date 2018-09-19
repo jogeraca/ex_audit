@@ -12,11 +12,8 @@ defmodule ExAudit.Type.Patch do
   end
 
   def load(json) do
-    elm =
-      json
-      |> convert_json_to_map()
-
-    {:ok, elm}
+    json = Morphix.atomorphiform!(json)
+    {:ok, json}
   end
 
   def type, do: :map
@@ -50,41 +47,21 @@ defmodule ExAudit.Type.Patch do
           x
       end
     end)
-  end
-
-  def convert_json_to_map(elem) do
-    elem
-    |> convertion_to_atoms()
-    |> Enum.into(%{})
-  end
-
-  defp convertion_to_atoms(x) when is_map(x) do
-    Enum.map(x, fn
-      {key, value} -> {String.to_atom(key), convertion_to_atoms(value)}
-    end)
-  end
-
-  defp convertion_to_atoms(x) when is_list(x) do
-    x
     |> Enum.chunk_every(3)
     |> Enum.map(&apply_conversion/1)
     |> Enum.at(0)
   end
 
-  def apply_conversion(["not_changed"]), do: :not_changed
-  def apply_conversion(["added", elem]), do: {:added, elem}
-  def apply_conversion(["removed", elem]), do: {:removed, elem}
+  def apply_conversion([:not_changed]), do: :not_changed
+  def apply_conversion([:added, elem]), do: %{added: elem}
+  def apply_conversion([:removed, elem]), do: %{removed: elem}
 
-  def apply_conversion(["changed", changes]) when is_map(changes),
-    do: {:changed, convert_json_to_map(changes)}
+  def apply_conversion([:changed, changes]) when is_map(changes),
+    do: %{changed: convert_map_to_json(changes)}
 
-  def apply_conversion(["changed", changes]) when is_list(changes),
-    do: {:changed, convertion_to_atoms(changes)}
-
-  def apply_conversion(["primitive_change", a, b]) do
-    a = if is_list(a), do: List.to_tuple(a), else: a
-    b = if is_list(b), do: List.to_tuple(b), else: b
-
-    {:primitive_change, a, b}
+  def apply_conversion([:primitive_change, before_elem, after_elem]) do
+    %{primitive_change: %{before: before_elem, after: after_elem}}
   end
+
+  def apply_conversion(elem), do: elem
 end

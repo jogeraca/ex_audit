@@ -54,7 +54,7 @@ defmodule ExAudit.Mixfile do
       {:excoveralls, "~> 0.7", only: :test},
       {:ex_doc, "~> 0.16", runtime: false, only: :dev},
       {:poison, "~> 3.0"},
-      {:morphix, "~> 0.3.0" }
+      {:morphix, "~> 0.2.4" }
     ]
   end
 end

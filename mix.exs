@@ -6,7 +6,7 @@ defmodule ExAudit.Mixfile do
       description: "Ecto auditing library that transparently tracks changes and can revert them",
       app: :ex_audit,
       version: "0.4.0",
-      elixir: "~> 1.5",
+      elixir: "~> 1.6.6",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       elixirc_paths: paths(Mix.env()),
@@ -49,12 +49,13 @@ defmodule ExAudit.Mixfile do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:ecto, "~> 2.1"},
-      {:postgrex, "~> 0.13.3", only: :test},
-      {:excoveralls, "~> 0.7", only: :test},
-      {:ex_doc, "~> 0.16", runtime: false, only: :dev},
-      {:poison, "~> 3.0"},
-      {:morphix, "~> 0.2.4" }
+      {:ecto, "~> 3.0.5"},
+      {:ecto_sql, "~> 3.0"},
+      {:postgrex, "~> 0.14", only: :test},
+      {:excoveralls, "~> 0.8", only: :test},
+      {:ex_doc, "~> 0.12", runtime: false, only: :dev},
+      {:poison, "~> 3.1"},
+      {:morphix, "~> 0.5"}
     ]
   end
 end

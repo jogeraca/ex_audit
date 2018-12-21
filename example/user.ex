@@ -5,14 +5,14 @@ defmodule ExAudit.Test.User do
   @derive {ExAudit.Tracker, except: [:transient_field]}
 
   schema "users" do
-    field :email, :string
-    field :name, :string
+    field(:email, :string)
+    field(:name, :string)
 
-    field :transient_field, :integer
+    field(:transient_field, :integer)
 
-    has_many :groups, ExAudit.Test.UserGroup
+    has_many(:groups, ExAudit.Test.UserGroup)
 
-    timestamps()
+    timestamps(type: :utc_datetime_usec)
   end
 
   def changeset(struct, params \\ %{}) do

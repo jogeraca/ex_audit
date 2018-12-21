@@ -1,18 +1,18 @@
 defmodule ExAudit.Schema do
-  def insert_all(module, adapter, schema_or_source, entries, opts)
+  def insert_all(module, schema_or_source, entries, opts)
       when is_binary(schema_or_source) do
     opts = augment_opts(opts)
-    Ecto.Repo.Schema.insert_all(module, adapter, schema_or_source, entries, opts)
+    Ecto.Repo.Schema.insert_all(module, schema_or_source, entries, opts)
   end
 
-  def insert_all(module, adapter, schema_or_source, entries, opts) do
+  def insert_all(module, schema_or_source, entries, opts) do
     opts = augment_opts(opts)
 
     augment_transaction(module, fn ->
       result =
         Ecto.Repo.Schema.insert_all(
           module,
-          adapter,
+          # adapter,
           schema_or_source,
           entries,
           Keyword.put(opts, :returning, true)
@@ -23,7 +23,6 @@ defmodule ExAudit.Schema do
           Enum.each(changesets, fn changeset ->
             ExAudit.Tracking.track_change(
               module,
-              adapter,
               :created,
               schema_or_source,
               changeset,
@@ -43,11 +42,11 @@ defmodule ExAudit.Schema do
     opts = augment_opts(opts)
 
     augment_transaction(module, fn ->
-      result = Ecto.Repo.Schema.insert(module, adapter, struct, opts)
+      result = Ecto.Repo.Schema.insert(module, struct, opts)
 
       case result do
         {:ok, resulting_struct} ->
-          ExAudit.Tracking.track_change(module, adapter, :created, struct, resulting_struct, opts)
+          ExAudit.Tracking.track_change(module, :created, struct, resulting_struct, opts)
 
         _ ->
           :ok
@@ -57,15 +56,15 @@ defmodule ExAudit.Schema do
     end)
   end
 
-  def update(module, adapter, struct, opts) do
+  def update(module, struct, opts) do
     opts = augment_opts(opts)
 
     augment_transaction(module, fn ->
-      result = Ecto.Repo.Schema.update(module, adapter, struct, opts)
+      result = Ecto.Repo.Schema.update(module, struct, opts)
 
       case result do
         {:ok, resulting_struct} ->
-          ExAudit.Tracking.track_change(module, adapter, :updated, struct, resulting_struct, opts)
+          ExAudit.Tracking.track_change(module, :updated, struct, resulting_struct, opts)
 
         _ ->
           :ok
@@ -75,22 +74,22 @@ defmodule ExAudit.Schema do
     end)
   end
 
-  def insert_or_update(module, adapter, changeset, opts) do
+  def insert_or_update(module, changeset, opts) do
     # TODO!
     opts = augment_opts(opts)
-    Ecto.Repo.Schema.insert_or_update(module, adapter, changeset, opts)
+    Ecto.Repo.Schema.insert_or_update(module, changeset, opts)
   end
 
-  def delete(module, adapter, struct, opts) do
+  def delete(module, struct, opts) do
     opts = augment_opts(opts)
 
     augment_transaction(module, fn ->
-      ExAudit.Tracking.track_assoc_deletion(module, adapter, struct, opts)
-      result = Ecto.Repo.Schema.delete(module, adapter, struct, opts)
+      ExAudit.Tracking.track_assoc_deletion(module, struct, opts)
+      result = Ecto.Repo.Schema.delete(module, struct, opts)
 
       case result do
         {:ok, resulting_struct} ->
-          ExAudit.Tracking.track_change(module, adapter, :deleted, struct, resulting_struct, opts)
+          ExAudit.Tracking.track_change(module, :deleted, struct, resulting_struct, opts)
 
         _ ->
           :ok
@@ -100,49 +99,49 @@ defmodule ExAudit.Schema do
     end)
   end
 
-  def insert!(module, adapter, struct, opts) do
+  def insert!(module, struct, opts) do
     opts = augment_opts(opts)
 
     augment_transaction(
       module,
       fn ->
-        result = Ecto.Repo.Schema.insert!(module, adapter, struct, opts)
-        ExAudit.Tracking.track_change(module, adapter, :created, struct, result, opts)
+        result = Ecto.Repo.Schema.insert!(module, struct, opts)
+        ExAudit.Tracking.track_change(module, :created, struct, result, opts)
         result
       end,
       true
     )
   end
 
-  def update!(module, adapter, struct, opts) do
+  def update!(module, struct, opts) do
     opts = augment_opts(opts)
 
     augment_transaction(
       module,
       fn ->
-        result = Ecto.Repo.Schema.update!(module, adapter, struct, opts)
-        ExAudit.Tracking.track_change(module, adapter, :updated, struct, result, opts)
+        result = Ecto.Repo.Schema.update!(module, struct, opts)
+        ExAudit.Tracking.track_change(module, :updated, struct, result, opts)
         result
       end,
       true
     )
   end
 
-  def insert_or_update!(module, adapter, changeset, opts) do
+  def insert_or_update!(module, changeset, opts) do
     # TODO
     opts = augment_opts(opts)
-    Ecto.Repo.Schema.insert_or_update!(module, adapter, changeset, opts)
+    Ecto.Repo.Schema.insert_or_update!(module, changeset, opts)
   end
 
-  def delete!(module, adapter, struct, opts) do
+  def delete!(module, struct, opts) do
     opts = augment_opts(opts)
 
     augment_transaction(
       module,
       fn ->
-        ExAudit.Tracking.track_assoc_deletion(module, adapter, struct, opts)
-        result = Ecto.Repo.Schema.delete!(module, adapter, struct, opts)
-        ExAudit.Tracking.track_change(module, adapter, :deleted, struct, result, opts)
+        ExAudit.Tracking.track_assoc_deletion(module, struct, opts)
+        result = Ecto.Repo.Schema.delete!(module, struct, opts)
+        ExAudit.Tracking.track_change(module, :deleted, struct, result, opts)
         result
       end,
       true
@@ -163,7 +162,7 @@ defmodule ExAudit.Schema do
     end
   end
 
-  def run_in_multi(_multi, fun, bang) do
+  def run_in_multi(_repo, _multi, fun, bang) do
     case {fun.(), bang} do
       {{:ok, _} = ok, false} ->
         ok

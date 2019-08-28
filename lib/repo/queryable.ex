@@ -3,20 +3,19 @@ defmodule ExAudit.Queryable do
 
   require Logger
 
-  def update_all(module, adapter, queryable, updates, opts) do
-    Ecto.Repo.Queryable.update_all(module, adapter, queryable, updates, opts)
+  def update_all(module, queryable, updates, opts) do
+    Ecto.Repo.Queryable.update_all(module, queryable, updates, opts)
   end
 
-  def delete_all(module, adapter, queryable, opts) do
+  def delete_all(module, queryable, opts) do
     opts = ExAudit.Schema.augment_opts(opts)
 
     ExAudit.Schema.augment_transaction(module, fn ->
-      result_query = Ecto.Repo.Queryable.all(module, adapter, queryable, opts)
+      result_query = Ecto.Repo.Queryable.all(module, queryable, opts)
 
       Enum.map(result_query, fn changeset ->
         ExAudit.Tracking.track_change(
           module,
-          adapter,
           :deleted,
           changeset,
           changeset,
@@ -24,14 +23,18 @@ defmodule ExAudit.Queryable do
         )
       end)
 
-      Ecto.Repo.Queryable.delete_all(module, adapter, queryable, opts)
+      Ecto.Repo.Queryable.delete_all(module, queryable, opts)
     end)
   end
 
-  def history(module, adapter, struct, opts) do
+  def history(module, struct, opts) do
     import Ecto.Query
 
-    query = from(v in @version_schema, order_by: [desc: :recorded_at])
+    query =
+      from(
+        v in @version_schema,
+        order_by: [desc: :recorded_at]
+      )
 
     # TODO what do when we get a query
 
@@ -49,7 +52,7 @@ defmodule ExAudit.Queryable do
           )
       end
 
-    versions = Ecto.Repo.Queryable.all(module, adapter, query, opts)
+    versions = Ecto.Repo.Queryable.all(module, query, opts)
 
     if Keyword.get(opts, :render_struct, false) do
       {versions, oldest_struct} =
@@ -85,7 +88,7 @@ defmodule ExAudit.Queryable do
 
   @drop_fields [:__meta__, :__struct__]
 
-  def revert(module, _adapter, version, opts) do
+  def revert(module, version, opts) do
     import Ecto.Query
 
     # get the history of the entity after this version

@@ -59,7 +59,7 @@ defmodule ExAudit.Test.Repo.Migrations.InitialTables do
       add(:action, :string)
 
       # when has this happened
-      add(:recorded_at, :utc_datetime)
+      add(:recorded_at, :utc_datetime_usec)
 
       # was this change part of a rollback?
       add(:rollback, :boolean, default: false)

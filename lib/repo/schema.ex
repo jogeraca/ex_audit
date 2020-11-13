@@ -49,14 +49,13 @@ defmodule ExAudit.Schema do
       case result do
         {:ok, resulting_struct} ->
           ExAudit.Tracking.track_change(module, :created, struct, resulting_struct, opts)
+          _ ->
+            :ok
+        end
 
-        _ ->
-          :ok
-      end
-
-      result
-    end)
-  end
+        result
+      end)
+    end
 
   def update(module, name, struct, opts) do
     opts = augment_opts(opts)
@@ -173,7 +172,7 @@ defmodule ExAudit.Schema do
   end
 
   # Cleans up the return value from repo.transaction
-  def augment_transaction(repo, fun, bang \\ false) do
+  defp augment_transaction(repo, fun, bang \\ false) do
     multi =
       Ecto.Multi.new()
       |> Ecto.Multi.run(:main, __MODULE__, :run_in_multi, [fun, bang])
@@ -212,7 +211,7 @@ defmodule ExAudit.Schema do
   #
   # This is done so it works inside a transaction (which happens when ecto mutates assocs at the same time)
 
-  def augment_opts(opts) do
+  defp augment_opts(opts) do
     opts
     |> Keyword.put_new(:ex_audit_custom, [])
     |> Keyword.update(:ex_audit_custom, [], fn custom_fields ->

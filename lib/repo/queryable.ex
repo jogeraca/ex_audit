@@ -1,7 +1,11 @@
 defmodule ExAudit.Queryable do
-  @version_schema Application.get_env(:ex_audit, :version_schema)
-
   require Logger
+
+  defp version_schema() do
+    Application.get_env(:ex_audit, :version_schema)
+  end
+
+  @compile {:inline, version_schema: 0}
 
   def update_all(module, queryable, updates, opts) do
     Ecto.Repo.Queryable.update_all(module, queryable, updates, opts)
@@ -32,7 +36,7 @@ defmodule ExAudit.Queryable do
 
     query =
       from(
-        v in @version_schema,
+        v in version_schema(),
         order_by: [desc: :recorded_at]
       )
 
@@ -76,7 +80,7 @@ defmodule ExAudit.Queryable do
 
       versions ++
         [
-          struct(@version_schema, %{
+          struct(version_schema(), %{
             id: oldest_id
           })
           |> Map.put(:original, empty_map_to_nil(oldest_struct))
@@ -95,7 +99,7 @@ defmodule ExAudit.Queryable do
 
     query =
       from(
-        v in @version_schema,
+        v in version_schema(),
         where: v.entity_id == ^version.entity_id,
         where: v.entity_schema == ^version.entity_schema,
         where: v.recorded_at >= ^version.recorded_at,

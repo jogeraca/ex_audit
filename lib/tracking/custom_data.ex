@@ -1,8 +1,5 @@
 defmodule ExAudit.CustomData do
   use GenServer
-  @moduledoc """
-  ETS table that stores custom data for pids
-  """
 
   @moduledoc """
   ETS table that stores custom data for pids

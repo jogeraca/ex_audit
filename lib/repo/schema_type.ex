@@ -1,5 +1,5 @@
 defmodule ExAudit.Type.Schema do
-  @behaviour Ecto.Type
+  use Ecto.Type
 
   def cast(schema) when is_atom(schema) do
     case Enum.member?(schemas(), schema) do
@@ -29,7 +29,8 @@ defmodule ExAudit.Type.Schema do
   end
 
   defp get_schema_by_table(table) do
-    schemas() |> Enum.find(fn schema ->
+    schemas()
+    |> Enum.find(fn schema ->
       schema.__schema__(:source) == table
     end)
   end
